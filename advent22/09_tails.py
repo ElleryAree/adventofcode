@@ -2,36 +2,42 @@ from Util import from_file, test
 
 
 class Rope:
-    def __init__(self):
-        self.__head_x = 0
-        self.__head_y = 0
-        self.__tail_x = 0
-        self.__tail_y = 0
+    def __init__(self, name, track_visited, tail):
+        self.name = name
+        self.__x = 0
+        self.__y = 0
+        self.__tail = tail
+        self.__visited = {(0, 0)} if track_visited else None
 
-        self.__visited = {(0, 0)}
+    def __str__(self):
+        return "%s (%d, %d)" % (self.name, self.__x, self.__y)
 
     def move(self, direction, steps):
         self.__move_head(self.__get_update(direction), steps)
 
+    def __get_name_for_coord(self, x, y):
+        if x == self.__x and y == self.__y:
+            return self.name
+
+        if self.__tail is None:
+            return "."
+
+        return self.__tail.__get_name_for_coord(x, y)
+
     def print_grid(self, width, height):
         for y in range(height - 1, -1, -1):
             for x in range(width):
-                if x == self.__head_x and y == self.__head_y:
-                    print("H", end="")
-                elif x == self.__tail_x and y == self.__tail_y:
-                    print("T", end="")
-                elif x == 0 and y == 0:
-                    print("s", end="")
-                else:
-                    print(".", end="")
+                c = self.__get_name_for_coord(x, y)
+                print(c, end="")
             print("")
         print("")
 
-    def get_tail(self):
-        return self.__tail_x, self.__tail_y
-
     def get_visited(self):
-        return len(self.__visited)
+        return len(self.__visited) if self.__visited is not None else 0
+
+    def __update_visited(self):
+        if self.__visited is not None:
+            self.__visited.add((self.__x, self.__y))
 
     @staticmethod
     def __get_update(direction):
@@ -49,8 +55,8 @@ class Rope:
         dx, dy = update
 
         for _ in range(steps):
-            self.__head_x += dx
-            self.__head_y += dy
+            self.__x += dx
+            self.__y += dy
             self.__move_tail()
 
             # self.print_grid(6, 5)
@@ -64,26 +70,40 @@ class Rope:
         return 0
 
     def __is_tail_adjacent(self):
-        for dx, dy in ((-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 0), (0, 1), (1, -1), (1, 0), (1, 1)):
-            if self.__tail_x + dx == self.__head_x and self.__tail_y + dy == self.__head_y:
-                return True
-        return False
+        dist = max(abs(self.__x - self.__tail.__x), abs(self.__y - self.__tail.__y))
+        return dist <= 1
 
     def __move_tail(self):
-        hor = self.__head_y - self.__tail_y
-        ver = self.__head_x - self.__tail_x
-
-        if self.__is_tail_adjacent():
+        if self.__tail is None or self.__is_tail_adjacent():
             return
 
-        self.__tail_x += self.__tail_delta(ver)
-        self.__tail_y += self.__tail_delta(hor)
+        hor = self.__y - self.__tail.__y
+        ver = self.__x - self.__tail.__x
 
-        self.__visited.add((self.__tail_x, self.__tail_y))
+        self.__tail.__x += self.__tail_delta(ver)
+        self.__tail.__y += self.__tail_delta(hor)
+
+        self.__tail.__update_visited()
+        self.__tail.__move_tail()
 
 
-def update_rope_from_lines(lines):
-    rope = Rope()
+def update_rope_with_one_tail_from_lines(lines):
+    last = Rope('T', True, None)
+    rope = Rope('H', False, last)
+    return update_rope_from_lines(rope, last, lines)
+
+
+def update_rope_with_nine_tail_from_lines(lines):
+    last = Rope('10', True, None)
+    rope = last
+
+    for i in range(9, 0, -1):
+        rope = Rope(str(i), False, rope)
+
+    return update_rope_from_lines(rope, last, lines)
+
+
+def update_rope_from_lines(rope, last, lines):
     # print("== Initial state ==")
     # rope.print_grid(6, 5)
 
@@ -95,12 +115,18 @@ def update_rope_from_lines(lines):
 
         rope.move(parts[0], int(parts[1]))
 
-    return rope.get_visited()
+    return last.get_visited()
+
+
+def run():
+    return update_rope_with_nine_tail_from_lines(from_file("inputs/09_tails"))
 
 
 def main():
-    test(13, update_rope_from_lines(from_file("test_inputs/09_tails")))
-    test(5878, update_rope_from_lines(from_file("inputs/09_tails")))
+    test(13, update_rope_with_one_tail_from_lines(from_file("test_inputs/09_tails")))
+    test(5878, update_rope_with_one_tail_from_lines(from_file("inputs/09_tails")))
+    test(1, update_rope_with_nine_tail_from_lines(from_file("test_inputs/09_tails")))
+    print(run())
 
 
 if __name__ == '__main__':
