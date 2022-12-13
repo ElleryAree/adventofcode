@@ -4,7 +4,42 @@ from Util import test, from_file
 class Packet:
     def __init__(self, line):
         self.__name = line
-        self.__value = eval(line)
+        # self.__value = eval(line)
+        self.__value = self.__parse_line(line)
+
+    @staticmethod
+    def __parse_line(line):
+        pars = []
+        curr_array = []
+        symbol = ""
+
+        for c in line:
+            if c == '[':
+                pars.append(curr_array)
+                curr_array = []
+                continue
+
+            if c == ']':
+                if symbol != '':
+                    symbol = int(symbol)
+                    curr_array.append(symbol)
+                    symbol = ""
+
+                arr = curr_array
+                curr_array = pars.pop()
+                curr_array.append(arr)
+                continue
+
+            if c == ',':
+                if symbol != '':
+                    symbol = int(symbol)
+                    curr_array.append(symbol)
+                    symbol = ""
+                continue
+
+            symbol += c
+
+        return curr_array
 
     def __check_pair(self, left, right):
         i = 0
