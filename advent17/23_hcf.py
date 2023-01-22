@@ -1,98 +1,33 @@
 from Util import from_file, test
 
 
-class Program:
-    def __init__(self, state):
-        self.A = state
-        self.B = 0
-        self.C = 0
-        self.D = 0
-        self.E = 0
-        self.F = 0
-        self.G = 0
-        self.H = 0
+def is_prime(n):
+    if n == 2 or n == 3:
+        return True
+    if n % 2 == 0 or n < 2:
+        return False
 
-    def __do_stuff(self):
-        self.G = self.D * self.E - self.B  # 11
+    for i in range(3, int(n ** 0.5) + 1, 2):
+        if n % i == 0:
+            return False
 
-        if self.G != 0:  # 14
-            self.F = 0
+    return True
 
-        self.E += 1
-        self.G = self.E - self.B  # 18
 
-    def __do_more_stuff(self):
-        self.E = 2  # 10
+def program_decompiles(is_debug):
+    start = 84
+    stop = start
+    prime_count = 0
 
-        self.__do_stuff()
-        while self.G != 0:  # 19
-            self.__do_stuff()
+    if not is_debug:
+        start = start * 100 + 100000
+        stop = start + 17000
 
-        self.D += 1
+    for i in range(start, stop + 17, 17):
+        if not is_prime(i):
+            prime_count += 1
 
-        self.G = self.D - self.B  # 22
-
-    def run(self):
-        """
-         0: set b 84
-         1: set c b
-         2: jnz a 2
-         3: jnz 1 5
-         4: mul b 100
-         5: sub b -100000
-         6: set c b
-         7: sub c -17000
-         8: set f 1
-         9: set d 2
-        10: set e 2
-        11: set g d
-        12: mul g e
-        13: sub g b
-        14: jnz g 2
-        15: set f 0
-        16: sub e -1
-        17: set g e
-        18: sub g b
-        19: jnz g -8
-        20: sub d -1
-        21: set g d
-        22: sub g b
-        23: jnz g -13
-        24: jnz f 2
-        25: sub h -1
-        26: set g b
-        27: sub g c
-        28: jnz g 2
-        29: jnz 1 3
-        30: sub b -17
-        31: jnz 1 -23
-        """
-
-        self.B = 84
-        self.C = self.B
-
-        if self.A != 0:
-            self.B = self.B * 100 - 100000
-            self.C = self.B - 17000
-
-        while True:
-            self.F = 1
-            self.D = 2
-
-            self.__do_more_stuff()
-
-            while self.G != 0:  # 23
-                self.__do_more_stuff()
-
-            if self.F == 0:
-                self.H += 1
-
-            self.G = self.B - self.C  # 27
-
-            if self.G == 0:
-                return  # 29
-
-            self.B += 17
+    return prime_count
 
 
 def parse_lines(lines):
@@ -136,27 +71,9 @@ def execute(value_a, lines):
     return registers
 
 
-def test_decomp():
-    registers = execute(0, from_file("inputs/23_hcf"))
-    program = Program(0)
-    program.run()
-
-    test(registers['a'], program.A, "val A")
-    test(registers['b'], program.B, "val B")
-    test(registers['c'], program.C, "val C")
-    test(registers['d'], program.D, "val D")
-    test(registers['e'], program.E, "val E")
-    test(registers['f'], program.F, "val F")
-    test(registers['g'], program.G, "val G")
-    test(registers['h'], program.H, "val H")
-
-
-
 def main():
-    # test(6724, execute(0, from_file("inputs/23_hcf"))['m'])
-    # print(execute(1, from_file("inputs/23_hcf")))
-
-    test_decomp()
+    test(6724, execute(0, from_file("inputs/23_hcf"))['m'])
+    test(903, program_decompiles(False))
 
 
 if __name__ == '__main__':
