@@ -42,3 +42,11 @@ def test_is_not_too_low(expected, actual, name=None):
 def from_file(filename):
     with open(filename) as f:
         return f.readlines()
+
+
+def major_adjacent():
+    return (-1, 0), (1, 0), (0, -1), (0, 1)
+
+
+def diagonally_adjacent():
+    return (-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)
