@@ -250,19 +250,6 @@ def merge_range(start, end, conv_map):
             current_range = None
             break
 
-        # if current range contains a_range: .i.A.A.i = iiA.Aii (3 ranges)
-        if current_range.contains(a_range.source_start) and current_range.contains(a_range.source_end()):
-            first_start = current_range.source_start
-            first_len = a_range.source_start - current_range.source_start
-
-            ranges.append(Range(first_start, first_start, first_len))
-            ranges.append(Range(a_range.dest_start, a_range.dest_start, a_range.range_len))
-
-            current_len = current_range.range_len - first_len - a_range.range_len
-            current_start = current_range.source_start + first_len + a_range.range_len
-
-            current_range = Range(current_start, current_start, current_len)
-
         # if a_range is after current range: .i..i.A..A. no ranges, done
         if a_range.source_start > current_range.source_end():
             break
